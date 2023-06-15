@@ -46,16 +46,6 @@ const init = async () => {
       return newResponse;
     }
 
-    // @ts-ignore (vscode types for Boom are incomplete)
-    if (response.statusCode === 500) {
-      const newResponse = h.response({
-        status: "error",
-        message: "Terjadi gangguan pada server",
-      });
-      newResponse.code(500);
-      return newResponse;
-    }
-
     // everything's fine, pass the response along as-is
     return h.continue;
   });

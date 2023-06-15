@@ -33,7 +33,7 @@ class OpenMusicService {
       throw new NotFoundError("ID Album tidak ditemukan");
     }
 
-    // TODO: optional feature: list songs that match album id given
+    // optional feature: list songs that match album id given
 
     const querySongsByAlbumId = {
       text: 'SELECT * FROM songs WHERE "albumId" = $1',
@@ -86,13 +86,41 @@ class OpenMusicService {
   }
 
   async getSongs() {
-    const result = await this._pool.query("SELECT * FROM songs");
-    // get all songs endpoint only needs to return these values
-    return result.rows.map(({ id, title, performer }) => ({
-      id,
-      title,
-      performer,
-    }));
+    // get all songs endpoint only needs to return id, title and performer
+    const query = "SELECT id, title, performer FROM songs";
+
+    const result = await this._pool.query(query);
+
+    return result.rows;
+  }
+
+  async getSpecificSongs(queryParams) {
+    // for optional feature. build up SQL query depending on passed params
+    const { title, performer } = queryParams;
+    let query;
+
+    if (title && performer) {
+      query = {
+        text:
+          "SELECT id, title, performer FROM songs WHERE title ILIKE $1 " +
+          "AND performer ILIKE $2",
+        values: [`%${title}%`, `%${performer}%`],
+      };
+    } else if (title) {
+      query = {
+        text: "SELECT id, title, performer FROM songs WHERE title ILIKE $1",
+        values: [`%${title}%`],
+      };
+    } else {
+      query = {
+        text: "SELECT id, title, performer FROM songs WHERE performer ILIKE $1",
+        values: [`%${performer}%`],
+      };
+    }
+
+    const result = await this._pool.query(query);
+
+    return result.rows;
   }
 
   async getSongById(id) {

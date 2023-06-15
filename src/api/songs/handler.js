@@ -33,8 +33,28 @@ class SongsHandler {
     return response;
   }
 
-  async getSongsHandler() {
-    const songs = await this._service.getSongs();
+  async getSongsHandler(request) {
+    // optional feature: query parameter for song search
+    // cases: ?title, ?performer, ?title + ?performer, none (all songs)
+
+    let songs = {};
+
+    if (request.query.title && request.query.performer) {
+      songs = await this._service.getSpecificSongs({
+        title: request.query.title,
+        performer: request.query.performer,
+      });
+    } else if (request.query.title) {
+      songs = await this._service.getSpecificSongs({
+        title: request.query.title,
+      });
+    } else if (request.query.performer) {
+      songs = await this._service.getSpecificSongs({
+        performer: request.query.performer,
+      });
+    } else {
+      songs = await this._service.getSongs();
+    }
 
     return {
       status: "success",
