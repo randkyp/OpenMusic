@@ -33,7 +33,16 @@ class OpenMusicService {
       throw new NotFoundError("ID Album tidak ditemukan");
     }
 
-    return result.rows[0];
+    // TODO: optional feature: list songs that match album id given
+
+    const querySongsByAlbumId = {
+      text: 'SELECT * FROM songs WHERE "albumId" = $1',
+      values: [id],
+    };
+
+    const songsResult = await this._pool.query(querySongsByAlbumId);
+
+    return { album: result.rows[0], songs: songsResult.rows };
   }
 
   async editAlbumById(id, { name, year }) {
