@@ -85,17 +85,7 @@ class OpenMusicService {
     return result.rows[0].id;
   }
 
-  async getSongs() {
-    // get all songs endpoint only needs to return id, title and performer
-    const query = "SELECT id, title, performer FROM songs";
-
-    const result = await this._pool.query(query);
-
-    return result.rows;
-  }
-
-  async getSpecificSongs(queryParams) {
-    // for optional feature. build up SQL query depending on passed params
+  async getSongs(queryParams) {
     const { title, performer } = queryParams;
     let query;
 
@@ -111,11 +101,14 @@ class OpenMusicService {
         text: "SELECT id, title, performer FROM songs WHERE title ILIKE $1",
         values: [`%${title}%`],
       };
-    } else {
+    } else if (performer) {
       query = {
         text: "SELECT id, title, performer FROM songs WHERE performer ILIKE $1",
         values: [`%${performer}%`],
       };
+    } else {
+      // no query params, return all songs
+      query = "SELECT id, title, performer FROM songs";
     }
 
     const result = await this._pool.query(query);

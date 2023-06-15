@@ -35,26 +35,15 @@ class SongsHandler {
 
   async getSongsHandler(request) {
     // optional feature: query parameter for song search
-    // cases: ?title, ?performer, ?title + ?performer, none (all songs)
+    // SQL query will be built on the controller side according to passed params
 
-    let songs = {};
+    const queryParams = {
+      // it's easy to forget that null != undefined, heh
+      title: request.query.title || null,
+      performer: request.query.performer || null,
+    };
 
-    if (request.query.title && request.query.performer) {
-      songs = await this._service.getSpecificSongs({
-        title: request.query.title,
-        performer: request.query.performer,
-      });
-    } else if (request.query.title) {
-      songs = await this._service.getSpecificSongs({
-        title: request.query.title,
-      });
-    } else if (request.query.performer) {
-      songs = await this._service.getSpecificSongs({
-        performer: request.query.performer,
-      });
-    } else {
-      songs = await this._service.getSongs();
-    }
+    const songs = await this._service.getSongs(queryParams);
 
     return {
       status: "success",
