@@ -1,13 +1,17 @@
 require("dotenv").config();
 
 const Hapi = require("@hapi/hapi");
+
 const OpenMusicService = require("./services/postgres/OpenMusicService");
+
 const albums = require("./api/albums");
 const songs = require("./api/songs");
 const AlbumsValidator = require("./validator/albums");
 const SongsValidator = require("./validator/songs");
+
 const NotFoundError = require("./exceptions/NotFoundError");
 const ClientError = require("./exceptions/ClientError");
+const InvariantError = require("./exceptions/InvariantError");
 
 const init = async () => {
   const openMusicService = new OpenMusicService();
@@ -37,7 +41,12 @@ const init = async () => {
   server.ext("onPreResponse", (request, h) => {
     const { response } = request;
 
-    if (response instanceof ClientError || response instanceof NotFoundError) {
+    // handle defined error conditions
+    if (
+      response instanceof ClientError ||
+      response instanceof NotFoundError ||
+      response instanceof InvariantError
+    ) {
       const newResponse = h.response({
         status: "fail",
         message: response.message,
@@ -46,7 +55,7 @@ const init = async () => {
       return newResponse;
     }
 
-    // everything's fine, pass the response along as-is
+    // pass other errors and successful requests as-is
     return h.continue;
   });
 
