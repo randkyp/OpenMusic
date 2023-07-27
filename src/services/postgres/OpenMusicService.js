@@ -33,16 +33,7 @@ class OpenMusicService {
       throw new NotFoundError("ID Album tidak ditemukan");
     }
 
-    // optional feature: list songs that match album id given
-
-    const querySongsByAlbumId = {
-      text: 'SELECT * FROM songs WHERE "albumId" = $1',
-      values: [id],
-    };
-
-    const songsResult = await this._pool.query(querySongsByAlbumId);
-
-    return { album: result.rows[0], songs: songsResult.rows };
+    return result.rows[0];
   }
 
   async editAlbumById(id, { name, year }) {
@@ -160,6 +151,18 @@ class OpenMusicService {
     if (!result.rows.length) {
       throw new NotFoundError("Song gagal dihapus. ID tidak ditemukan");
     }
+  }
+
+  // optional feature: list songs that match album id given
+  async querySongsByAlbumId(albumId) {
+    const query = {
+      text: 'SELECT * FROM songs WHERE "albumId" = $1',
+      values: [albumId],
+    };
+
+    const result = await this._pool.query(query);
+
+    return result.rows;
   }
 }
 

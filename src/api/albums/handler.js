@@ -27,8 +27,9 @@ class AlbumsHandler {
   async getAlbumByIdHandler(request) {
     const { id } = request.params;
 
-    // optional feature now returns an object and array instead of just `album`
-    const { album, songs } = await this._service.getAlbumById(id);
+    const album = await this._service.getAlbumById(id);
+    // optional feature: get songs by album id
+    const songs = await this._service.querySongsByAlbumId(id);
 
     return {
       status: "success",
