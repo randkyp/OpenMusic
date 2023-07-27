@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 const Hapi = require("@hapi/hapi");
+const Jwt = require("@hapi/jwt");
 
 const OpenMusicService = require("./services/postgres/OpenMusicService");
 
@@ -17,6 +18,12 @@ const UsersService = require("./services/postgres/UsersService");
 const users = require("./api/users");
 const UsersValidator = require("./validator/users");
 
+// authentications
+const AuthenticationsService = require("./services/postgres/AuthenticationsService");
+const authentications = require("./api/authentications");
+const TokenManager = require("./services/tokenize/TokenManager");
+const AuthenticationsValidator = require("./validator/authentications");
+
 // error types for onPreResponse
 const NotFoundError = require("./exceptions/NotFoundError");
 const ClientError = require("./exceptions/ClientError");
@@ -26,10 +33,33 @@ const AuthenticationError = require("./exceptions/AuthenticationError");
 const init = async () => {
   const openMusicService = new OpenMusicService();
   const usersService = new UsersService();
+  const authenticationsService = new AuthenticationsService();
 
   const server = Hapi.server({
     port: process.env.PORT,
     host: process.env.HOST,
+  });
+
+  await server.register([
+    {
+      plugin: Jwt,
+    },
+  ]);
+
+  server.auth.strategy("openmusic_jwt", "jwt", {
+    keys: process.env.ACCESS_TOKEN_KEY,
+    verify: {
+      aud: false,
+      iss: false,
+      sub: false,
+      maxAgeSec: process.env.ACCESS_TOKEN_AGE,
+    },
+    validate: (artifacts) => ({
+      isValid: true,
+      credentials: {
+        id: artifacts.decoded.payload.id,
+      },
+    }),
   });
 
   await server.register([
@@ -54,6 +84,14 @@ const init = async () => {
         validator: UsersValidator,
       },
     },
+    {
+      plugin: authentications,
+      options: {
+        authenticationsService,
+        tokenManager: TokenManager,
+        validator: AuthenticationsValidator,
+      },
+    },
   ]);
 
   server.ext("onPreResponse", (request, h) => {
@@ -74,19 +112,21 @@ const init = async () => {
       return newResponse;
     }
 
-    // log unexpected errors
-    if (response instanceof Error) {
-      // eslint-disable-next-line no-console
-      console.error(response);
-      const newResponse = h.response({
-        status: "error",
-        ...response,
-      });
-      return newResponse;
+    // pass along other responses as-is
+    // note: boom TS types are... deficient:
+    // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/19443
+    // @ts-ignore
+    if (!response.isBoom) {
+      return h.continue;
     }
 
-    // pass other errors and successful requests as-is
-    return h.continue;
+    // add custom error status message on Hapi-generated errors and log it
+    const error = response;
+    // eslint-disable-next-line no-console
+    console.error(error);
+    // @ts-ignore https://hapi.dev/api/?v=21.3.2#error-transformation
+    error.output.payload.status = "error";
+    return error;
   });
 
   await server.start();
