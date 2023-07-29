@@ -1,9 +1,9 @@
 exports.shorthands = undefined;
 
 exports.up = (pgm) => {
-  pgm.addConstraint("songs", "fk_albumId_albums.id", {
+  pgm.addConstraint("songs", "fk_album_id_albums.id", {
     foreignKeys: {
-      columns: "albumId",
+      columns: "album_id",
       references: "albums(id)",
       onDelete: "CASCADE",
     },
@@ -11,5 +11,5 @@ exports.up = (pgm) => {
 };
 
 exports.down = (pgm) => {
-  pgm.dropConstraint("songs", "fk_albumId_albums.id");
+  pgm.dropConstraint("songs", "fk_album_id_albums.id");
 };

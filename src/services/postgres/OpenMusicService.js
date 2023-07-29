@@ -123,13 +123,9 @@ class OpenMusicService {
   }
 
   async editSongById(id, { title, year, performer, genre, duration, albumId }) {
-    // note: quoting "albumId" is required since by default PostgreSQL changes
-    // all column names to lowercase. in the future, just use snake_case for
-    // all column names to avoid potential confusion and complications.
     const query = {
-      text:
-        "UPDATE songs SET title = $1, year = $2, performer = $3, genre = $4, " +
-        'duration = $5, "albumId" = $6 WHERE id = $7 RETURNING id',
+      text: `UPDATE songs SET title = $1, year = $2, performer = $3, genre = $4, 
+      duration = $5, album_id = $6 WHERE id = $7 RETURNING id`,
       values: [title, year, performer, genre, duration, albumId, id],
     };
 
@@ -156,7 +152,7 @@ class OpenMusicService {
   // optional feature: list songs that match album id given
   async querySongsByAlbumId(albumId) {
     const query = {
-      text: 'SELECT * FROM songs WHERE "albumId" = $1',
+      text: "SELECT * FROM songs WHERE album_id = $1",
       values: [albumId],
     };
 

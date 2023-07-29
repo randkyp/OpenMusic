@@ -40,7 +40,7 @@ class PlaylistsService {
     const playlistSongId = `playlistSong-${nanoid(16)}`;
 
     const query = {
-      text: "INSERT INTO playlist_songs VALUES($1, $2, $3) RETURNING id",
+      text: "INSERT INTO playlists_songs VALUES($1, $2, $3) RETURNING id",
       values: [playlistSongId, id, songId],
     };
 
@@ -77,51 +77,45 @@ class PlaylistsService {
     };
 
     const result = await this._pool.query(query);
-    // TODO: tweak results mapping to match expected object shape, get data into db first
-    console.dir(result.rows, { depth: null, colors: true });
     return result.rows;
   }
 
   async getPlaylistSongs(id) {
-    /* returns a single playlist and its linked songs -- don't return genre etc
-      "playlist": {
-        "id": "playlist-xxx",
-        "name": "playlist title",
-        "username": "dicoding",
-        "songs": [
-          {
-            "id": "song-xxx",
-            "title": "Track 01",
-            "performer": "Unknown Artist",
-          },
-          {
-            "id": "song-yyy",
-            "title": "Track 02",
-            "performer": "Unknown Artist"
-          }
-        ]
-      }
-    */
-    const query = {
-      text: `SELECT playlists.id AS playlist_id, playlists.name AS name,
-      users.username AS username, songs.id AS id, songs.title AS title,
-      songs.performer AS performer
+    // first, query the playlist
+    const queryPlaylist = {
+      text: `SELECT playlists.id AS "id", playlists.name AS "name",
+      users.username AS "username"
       FROM playlists
       JOIN users ON users.id = playlists.owner
-      JOIN playlist_songs ON playlist_songs."playlistId" = playlists.id
-      JOIN songs ON songs.id = playlist_songs."songId"
       WHERE playlists.id = $1`,
       values: [id],
     };
-    const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
-      throw new NotFoundError("Lagu playlist tidak ditemukan");
-    }
+    const playlistResult = await this._pool.query(queryPlaylist);
+    // console.log(playlistResult);
 
-    // TODO: tweak results mapping to match expected object shape, get data into db first
-    console.dir(result.rows, { depth: null, colors: true });
-    return result.rows;
+    // then query the songs inside that playlist
+    const querySongs = {
+      text: `SELECT songs.id AS "id", songs.title AS "title",
+      songs.performer AS "performer"
+      FROM playlists
+      JOIN playlists_songs ON playlists_songs.playlist_id = playlists.id
+      JOIN songs ON songs.id = playlists_songs.song_id
+      WHERE playlists.id = $1;`,
+      values: [id],
+    };
+
+    const songsResult = await this._pool.query(querySongs);
+
+    // combine
+    return {
+      ...playlistResult.rows[0],
+      songs: songsResult.rows.map((song) => ({
+        id: song.id,
+        title: song.title,
+        performer: song.performer,
+      })),
+    };
   }
 
   async deletePlaylist(id) {
@@ -139,8 +133,8 @@ class PlaylistsService {
 
   async deletePlaylistSong(id, songId) {
     const query = {
-      text: `DELETE FROM playlist_songs WHERE "playlistId" = $1
-      AND "songId" = $2 RETURNING "playlistId"`,
+      text: `DELETE FROM playlists_songs WHERE playlist_id = $1 AND song_id = $2
+      RETURNING playlist_id`,
       values: [id, songId],
     };
 

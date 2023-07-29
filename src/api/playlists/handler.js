@@ -42,7 +42,7 @@ class PlaylistsHandler {
     return {
       status: "success",
       data: {
-        playlist: [...playlists],
+        playlists,
       },
     };
   }
@@ -85,16 +85,10 @@ class PlaylistsHandler {
     await this._service.verifyPlaylistOwner(id, credentialId);
     const result = await this._service.getPlaylistSongs(id);
 
-    // TODO: match output object shape to desired result
     return {
       status: "success",
       data: {
-        playlist: {
-          id: result.playlist.playlist_id,
-          name: result.playlist.name,
-          username: result.playlist.username,
-          songs: [...result.playlist.songs],
-        },
+        playlist: { ...result },
       },
     };
   }
