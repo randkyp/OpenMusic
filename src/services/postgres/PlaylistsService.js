@@ -52,21 +52,6 @@ class PlaylistsService {
   }
 
   async getPlaylists(owner) {
-    /* returns the list of playlists created by that particular user:
-    "playlists": [
-      {
-        "id": "playlist-xxx",
-        "name": "nama playlist 1",
-        "username": dicoding
-      },
-      {
-        "id": "playlist-yyy",
-        "name": "nama playlist 2",
-        "username": dicoding
-      }
-    ] 
-    
-    */
     // join with users table to get username in playlist object body
     const query = {
       text: `SELECT playlists.id AS id, playlists.name AS name,
@@ -92,7 +77,6 @@ class PlaylistsService {
     };
 
     const playlistResult = await this._pool.query(queryPlaylist);
-    // console.log(playlistResult);
 
     // then query the songs inside that playlist
     const querySongs = {

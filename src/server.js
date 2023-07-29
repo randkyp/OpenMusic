@@ -34,6 +34,7 @@ const NotFoundError = require("./exceptions/NotFoundError");
 const ClientError = require("./exceptions/ClientError");
 const InvariantError = require("./exceptions/InvariantError");
 const AuthenticationError = require("./exceptions/AuthenticationError");
+const AuthorizationError = require("./exceptions/AuthorizationError");
 
 const init = async () => {
   const openMusicService = new OpenMusicService();
@@ -115,7 +116,8 @@ const init = async () => {
       response instanceof ClientError ||
       response instanceof NotFoundError ||
       response instanceof InvariantError ||
-      response instanceof AuthenticationError
+      response instanceof AuthenticationError ||
+      response instanceof AuthorizationError
     ) {
       const newResponse = h.response({
         status: "fail",
