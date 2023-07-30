@@ -2,6 +2,7 @@ const { Pool } = require("pg");
 const { nanoid } = require("nanoid");
 const NotFoundError = require("../../exceptions/NotFoundError");
 
+// TODO: Split this up into Songs and Albums service
 class OpenMusicService {
   constructor() {
     this._pool = new Pool();
@@ -29,7 +30,7 @@ class OpenMusicService {
 
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError("ID Album tidak ditemukan");
     }
 
@@ -44,7 +45,7 @@ class OpenMusicService {
 
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError("Gagal memperbarui album. ID tidak ditemukan");
     }
   }
@@ -57,7 +58,7 @@ class OpenMusicService {
 
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError("Album gagal dihapus. ID tidak ditemukan");
     }
   }
@@ -115,7 +116,7 @@ class OpenMusicService {
 
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError("ID Song tidak ditemukan");
     }
 
@@ -131,7 +132,7 @@ class OpenMusicService {
 
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError("Gagal memperbaruhi song. ID tidak ditemukan");
     }
   }
@@ -144,7 +145,7 @@ class OpenMusicService {
 
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError("Song gagal dihapus. ID tidak ditemukan");
     }
   }

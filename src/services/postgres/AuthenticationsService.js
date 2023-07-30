@@ -17,7 +17,7 @@ class AuthenticationService {
     const result = await this._pool.query(query);
 
     // username not found
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new AuthenticationError("Kredensial yang anda berikan salah.");
     }
 
@@ -49,7 +49,7 @@ class AuthenticationService {
 
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new InvariantError("Refresh token tidak valid");
     }
   }

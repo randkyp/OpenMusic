@@ -1,5 +1,3 @@
-exports.shorthands = undefined;
-
 exports.up = (pgm) => {
   pgm.addConstraint("songs", "fk_album_id_albums.id", {
     foreignKeys: {
