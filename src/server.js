@@ -30,11 +30,7 @@ const TokenManager = require("./services/tokenize/TokenManager");
 const AuthenticationsValidator = require("./validator/authentications");
 
 // error types for onPreResponse
-const NotFoundError = require("./exceptions/NotFoundError");
 const ClientError = require("./exceptions/ClientError");
-const InvariantError = require("./exceptions/InvariantError");
-const AuthenticationError = require("./exceptions/AuthenticationError");
-const AuthorizationError = require("./exceptions/AuthorizationError");
 
 const init = async () => {
   const openMusicService = new OpenMusicService();
@@ -111,14 +107,8 @@ const init = async () => {
   server.ext("onPreResponse", (request, h) => {
     const { response } = request;
 
-    // handle defined error conditions
-    if (
-      response instanceof ClientError ||
-      response instanceof NotFoundError ||
-      response instanceof InvariantError ||
-      response instanceof AuthenticationError ||
-      response instanceof AuthorizationError
-    ) {
+    // handle client error and its subclasses (InvariantError, etc)
+    if (response instanceof ClientError) {
       const newResponse = h.response({
         status: "fail",
         message: response.message,
