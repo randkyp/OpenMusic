@@ -4,9 +4,9 @@ const InvariantError = require("../../exceptions/InvariantError");
 const NotFoundError = require("../../exceptions/NotFoundError");
 const AuthorizationError = require("../../exceptions/AuthorizationError");
 // required to check for existence of songId in addPlaylistSong
-const OpenMusicService = require("./OpenMusicService");
+const SongsService = require("./SongsService");
 // instatntiate class so that we can call its methods
-const openMusicService = new OpenMusicService();
+const songsService = new SongsService();
 
 class PlaylistsService {
   constructor() {
@@ -33,7 +33,7 @@ class PlaylistsService {
   async addPlaylistSong(id, songId) {
     // we've verified whether the playlist exists and that the user is auth'd
     // in the handler, so now we verify if the song exists
-    await openMusicService.getSongById(songId);
+    await songsService.getSongById(songId);
 
     // if so, insert into playlists_songs table
     // generate playlists_songs primary key/id
