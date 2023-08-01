@@ -1,16 +1,14 @@
 const { Pool } = require("pg");
 const NotFoundError = require("../../exceptions/NotFoundError");
 const ClientError = require("../../exceptions/ClientError");
-// required to check existence of album
-const AlbumsService = require("./AlbumsService");
 
 class LikesService {
-  constructor() {
+  constructor(albumsService, cacheService) {
     this._pool = new Pool();
-    this._albumsService = new AlbumsService();
+    this._albumsService = albumsService;
+    this._cacheService = cacheService;
   }
 
-  // TODO: caching
   async addAlbumLike(userId, albumId) {
     // query whether album exists (throws error when it's not found)
     await this._albumsService.getAlbumById(albumId);
@@ -24,6 +22,8 @@ class LikesService {
     };
 
     await this._pool.query(query);
+
+    await this._cacheService.del(`omlikes:${albumId}`);
   }
 
   async deleteAlbumLike(userId, albumId) {
@@ -38,18 +38,28 @@ class LikesService {
     if (!result.rowCount) {
       throw new NotFoundError("Anda belum meyukai album tersebut");
     }
+
+    await this._cacheService.del(`omlikes:${albumId}`);
   }
 
   async getAlbumLikes(albumId) {
-    const query = {
-      text: `SELECT COUNT(DISTINCT user_id) AS total_album_likes
-      FROM user_album_likes WHERE album_id = $1`,
-      values: [albumId],
-    };
+    try {
+      const result = await this._cacheService.get(`omlikes:${albumId}`);
+      return { likes: result, cached: "yes" };
+    } catch (error) {
+      const query = {
+        text: `SELECT COUNT(DISTINCT user_id) AS total_album_likes
+        FROM user_album_likes WHERE album_id = $1`,
+        values: [albumId],
+      };
 
-    const result = await this._pool.query(query);
+      const result = await this._pool.query(query);
+      const likes = +result.rows[0].total_album_likes;
 
-    return result.rows[0].total_album_likes;
+      await this._cacheService.set(`omlikes:${albumId}`, likes);
+
+      return { likes, cached: "no" };
+    }
   }
 
   async getAlbumUserLike(userId, albumId) {
