@@ -29,6 +29,11 @@ const authentications = require("./api/authentications");
 const TokenManager = require("./services/tokenize/TokenManager");
 const AuthenticationsValidator = require("./validator/authentications");
 
+// exports
+const _exports = require("./api/exports");
+const ProducerService = require("./services/rabbitmq/ProducerService");
+const ExportsValidator = require("./validator/exports");
+
 // error types for onPreResponse
 const ClientError = require("./exceptions/ClientError");
 
@@ -101,6 +106,14 @@ const init = async () => {
         authenticationsService,
         tokenManager: TokenManager,
         validator: AuthenticationsValidator,
+      },
+    },
+    {
+      plugin: _exports,
+      options: {
+        playlistsService,
+        service: ProducerService,
+        validator: ExportsValidator,
       },
     },
   ]);
