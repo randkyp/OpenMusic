@@ -62,15 +62,29 @@ class AlbumsService {
   }
 
   // optional feature: list songs that match album id given
-  async querySongsByAlbumId(albumId) {
+  async querySongsByAlbumId(id) {
     const query = {
       text: "SELECT * FROM songs WHERE album_id = $1",
-      values: [albumId],
+      values: [id],
     };
 
     const result = await this._pool.query(query);
 
     return result.rows;
+  }
+
+  // to update database with cover file location
+  async updateAlbumCover(id, location) {
+    const query = {
+      text: "UPDATE albums SET cover = $1 WHERE id = $2 RETURNING id",
+      values: [location, id],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rowCount) {
+      throw new NotFoundError(`Gagal ubah sampul, tiada album dengan ID ${id}`);
+    }
   }
 }
 

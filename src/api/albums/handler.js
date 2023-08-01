@@ -31,10 +31,14 @@ class AlbumsHandler {
     // optional feature: get songs by album id
     const songs = await this._service.querySongsByAlbumId(id);
 
+    // modify cover column name to coverUrl for the cover upload feature
+    const returnedAlbum = { ...album, coverUrl: album.cover, songs };
+    delete returnedAlbum.cover;
+
     return {
       status: "success",
       data: {
-        album: { ...album, songs },
+        album: returnedAlbum,
       },
     };
   }

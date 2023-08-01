@@ -5,7 +5,8 @@ const PlaylistPayloadSchema = Joi.object({
 });
 
 const PlaylistSongPayloadSchema = Joi.object({
-  songId: Joi.string().required(),
+  // database schema for song_id is set to varchar(50)
+  songId: Joi.string().max(50).required(),
 });
 
 module.exports = { PlaylistPayloadSchema, PlaylistSongPayloadSchema };
