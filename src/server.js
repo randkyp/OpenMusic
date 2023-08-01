@@ -3,13 +3,13 @@ require("dotenv").config();
 const Hapi = require("@hapi/hapi");
 const Jwt = require("@hapi/jwt");
 
-const OpenMusicService = require("./services/postgres/OpenMusicService");
-
 // albums
+const AlbumsService = require("./services/postgres/AlbumsService");
 const albums = require("./api/albums");
 const AlbumsValidator = require("./validator/albums");
 
 // songs
+const SongsService = require("./services/postgres/SongsService");
 const songs = require("./api/songs");
 const SongsValidator = require("./validator/songs");
 
@@ -33,7 +33,8 @@ const AuthenticationsValidator = require("./validator/authentications");
 const ClientError = require("./exceptions/ClientError");
 
 const init = async () => {
-  const openMusicService = new OpenMusicService();
+  const albumsService = new AlbumsService();
+  const songsService = new SongsService();
   const usersService = new UsersService();
   const playlistsService = new PlaylistsService();
   const authenticationsService = new AuthenticationsService();
@@ -69,14 +70,14 @@ const init = async () => {
     {
       plugin: albums,
       options: {
-        service: openMusicService,
+        service: albumsService,
         validator: AlbumsValidator,
       },
     },
     {
       plugin: songs,
       options: {
-        service: openMusicService,
+        service: songsService,
         validator: SongsValidator,
       },
     },
