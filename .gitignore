@@ -1,4 +1,4 @@
 .env
-_notes/
-node_modules/
+node_modules
 OpenMusicV*.zip
+/uploads
